@@ -26,6 +26,7 @@ public class logonp extends HttpServlet {
     private static final long serialVersionUID = 1L;
     Logger log = Logger.getLogger(this.getClass());
 
+
     @Override
     public void service(HttpServletRequest req, HttpServletResponse res)
 	    throws ServletException, IOException {
@@ -34,14 +35,17 @@ public class logonp extends HttpServlet {
 
 	String path = req.getContextPath();
 
-	log.debug("Context path is " + path);
-
 	String userName = req.getParameter("username");
-
-	log.debug("username is " + userName);
 
 	if (userName != null && !userName.equalsIgnoreCase("")) {
 	    userName = userName.toLowerCase();
+
+	    if (isUserBlocked(userName)) {
+		log.error("User is blocked due to too many login attempts:"
+			+ userName);
+		res.sendRedirect(path + WiseConstants.ADMIN_APP + "/error.htm");
+	    }
+
 	} else {
 	    log.error("Empty UserName field:" + userName);
 	    res.sendRedirect(path + WiseConstants.ADMIN_APP + "/error.htm");
@@ -50,29 +54,25 @@ public class logonp extends HttpServlet {
 	String password = req.getParameter("password");
 	HttpSession session = req.getSession(true);
 
-	log.debug("Initializing admin info class");
-	// Initialize AdminInfo class (application)
-	AdminInfo.check_init(path);
-	log.debug("AdminInfo object initialized");
-
 	try {
-	// initialize AdminInfo instance and store in session
-	AdminInfo admin_info = new AdminInfo(userName, password);
+	    // initialize AdminInfo instance and store in session
+	    AdminInfo admin_info = new AdminInfo(userName, password);
 
-	HealthMonitoringManager.monitor(admin_info);
+	    HealthMonitoringManager.monitor(admin_info);
 
-	// verify the username and password
-	if (!admin_info.pw_valid) {
-	    log.error("Incorrect input: Username or password was entered wrong.");
-	    res.sendRedirect(path + "/" + WiseConstants.ADMIN_APP
-		    + "/error.htm");
-	} else {
+	    // verify the username and password
+	    if (!admin_info.pw_valid) {
+		log.error("Incorrect input: Username or password was entered wrong.");
+		res.sendRedirect(path + "/" + WiseConstants.ADMIN_APP
+			+ "/error.htm");
+	    } else {
 
-	    session.setAttribute("ADMIN_INFO", admin_info);
-	    // send HTTP request to create study space and admin user
-	    res.sendRedirect(path + "/" + WiseConstants.ADMIN_APP + "/tool.jsp");
+		session.setAttribute("ADMIN_INFO", admin_info);
+		// send HTTP request to create study space and admin user
+		res.sendRedirect(path + "/" + WiseConstants.ADMIN_APP
+			+ "/tool.jsp");
 		log.info("Admin login Success!");
-	}
+	    }
 	} catch (IllegalArgumentException e) {
 	    log.error("Could not get the parameters for study space "
 		    + userName);
@@ -80,5 +80,38 @@ public class logonp extends HttpServlet {
 		    + "/error.htm");
 	}
     }
+
+    private boolean isUserBlocked(String username){
+
+	boolean userIsBlocked = false;
+
+	if (AdminInfo.getLoginAttemptNumbers().containsKey(username)) {
+
+	    int numberOfAttempts = AdminInfo.getLoginAttemptNumbers().get(
+		    username);
+
+	    if (numberOfAttempts > 5) {
+
+		if (System.currentTimeMillis()
+			- AdminInfo.getLastlogintime().get(username) < (30 * 60 * 1000)) {
+		    userIsBlocked = true;
+		} else {
+		    numberOfAttempts = 0;
+		}
+
+	    }
+	    numberOfAttempts++;
+	    AdminInfo.getLoginAttemptNumbers().put(username, numberOfAttempts);
+
+	} else {
+	    AdminInfo.getLoginAttemptNumbers().put(username, 1);
+	}
+
+	AdminInfo.getLastlogintime().put(username, System.currentTimeMillis());
+
+	return userIsBlocked;
+
+    }
+
 
 }

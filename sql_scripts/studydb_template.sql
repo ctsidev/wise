@@ -39,7 +39,7 @@ CREATE TABLE `decline_hits` (
   `survey` varchar(64) default NULL,
   `viewdate` timestamp NOT NULL default CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP,
   KEY `msg_id` (`msg_id`),
-  CONSTRAINT `decline_hits_ibfk_1` FOREIGN KEY (`msg_id`) REFERENCES `survey_message_use` (`id`) ON DELETE CASCADE
+  CONSTRAINT `decline_hits_ibfk_1` FOREIGN KEY (`msg_id`) REFERENCES `survey_message_use` (`messageId`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
@@ -196,7 +196,7 @@ CREATE TABLE `survey_user_session` (
   `browser_info` text NOT NULL,
   PRIMARY KEY  (`id`),
   KEY `from_message` (`from_message`),
-  CONSTRAINT `survey_user_session_ibfk_1` FOREIGN KEY (`from_message`) REFERENCES `survey_message_use` (`id`) ON DELETE CASCADE
+  CONSTRAINT `survey_user_session_ibfk_1` FOREIGN KEY (`from_message`) REFERENCES `survey_message_use` (`messageId`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --

@@ -6,6 +6,7 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Enumeration;
+import java.util.HashSet;
 import java.util.Hashtable;
 
 import org.apache.log4j.Logger;
@@ -82,14 +83,22 @@ public class User_DB_Connection {
 
     /** retrieve values for a list of fields from the invitee table */
     public String[] getInviteeAttrs(String[] fieldNames) {
+	
+	HashSet<String> nonEncodedFieldSet = new HashSet<String>();
+	nonEncodedFieldSet.add("firstname");
+	nonEncodedFieldSet.add("lastname");
+	nonEncodedFieldSet.add("salutation");
+	nonEncodedFieldSet.add("phone");
+	
 	String userid = theUser.id;
 	String[] values = new String[fieldNames.length];
 	if (fieldNames.length < 1)
 	    return values;
 	String fieldString = "";
 	for (int i = 0; i < fieldNames.length - 1; i++) {
-	    fieldString += (User.INVITEE_FIELDS.email.name()
-		    .equalsIgnoreCase(fieldNames[i])) ? "AES_DECRYPT("
+	    fieldString += (!nonEncodedFieldSet.contains(fieldNames[i]
+		    .toLowerCase()))
+		    ? "AES_DECRYPT("
 		    + User.INVITEE_FIELDS.email.name() + ",'"
 		    + db.email_encryption_key + "')" : fieldNames[i];
 	    fieldString += ",";
@@ -551,18 +560,23 @@ public class User_DB_Connection {
     // return the new messageID
     public String record_messageUse(String message_id) {
 	String uid = theUser.id;
-	String sql = "INSERT INTO survey_message_use(invitee, survey, message) VALUES ("
-		+ uid + ",'" + surveyID + "', '" + message_id + "')";
-	String newid = null;
+	String messageId = org.apache.commons.lang3.RandomStringUtils
+		.randomAlphanumeric(22);
+	String sql = "INSERT INTO survey_message_use(messageId,invitee, survey, message) VALUES ('"
+		+ messageId
+		+ "',"
+		+ uid
+		+ ",'"
+		+ surveyID
+		+ "', '"
+		+ message_id + "')";
+	String newid = messageId;
 	try {
 	    // connect to database
 	    Statement stmt = conn.createStatement();
 	    // check if the user has already existed in the survey data table
 	    stmt.execute(sql);
-	    stmt.execute("SELECT LAST_INSERT_ID() from survey_message_use");
-	    ResultSet rsm = stmt.getResultSet();
-	    if (rsm.next())
-		newid = Integer.toString(rsm.getInt(1));
+
 	    stmt.close();
 	} catch (Exception e) {
 	    WISE_Application.log_error("Error recording new message using "

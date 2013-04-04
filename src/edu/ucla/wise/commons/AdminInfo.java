@@ -13,6 +13,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Enumeration;
 import java.util.Hashtable;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -60,6 +61,9 @@ public class AdminInfo extends WISE_Application {
     public static String shared_file_url;
     public static String shared_image_url;
     public static String servlet_url;
+
+    private static final ConcurrentHashMap<String, Integer> loginAttemptNumbers = new ConcurrentHashMap<String, Integer>();
+    private static final ConcurrentHashMap<String, Long> lastLoginTime = new ConcurrentHashMap<String, Long>();
 
     public static void initStaticFields(String appContext) {
 	if (ApplicationName == null) {
@@ -1325,4 +1329,19 @@ public class AdminInfo extends WISE_Application {
 	    return db.archive_prodSurvey(survey);
 	return "Unrecognized Survey Status/Type";
     }
+
+    /**
+     * @return the loginAttemptNumbers
+     */
+    public static ConcurrentHashMap<String, Integer> getLoginAttemptNumbers() {
+	return loginAttemptNumbers;
+    }
+
+    /**
+     * @return the lastlogintime
+     */
+    public static ConcurrentHashMap<String, Long> getLastlogintime() {
+	return lastLoginTime;
+    }
+
 }

@@ -14,6 +14,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -171,86 +172,92 @@ public class load_data extends HttpServlet {
     // the csv file then it should be automatically handled up update if exists
     public void process_invitees_csv_file(File f, PrintWriter out,
 	    Statement stmt) throws SQLException {
-	// declare the column array of string
+
+	HashSet<String> nonEncodedFieldSet = new HashSet<String>();
+	nonEncodedFieldSet.add("firstname");
+	nonEncodedFieldSet.add("lastname");
+	nonEncodedFieldSet.add("salutation");
+	nonEncodedFieldSet.add("phone");
+
+	HashSet<Integer> nonEncodedFieldPositions = new HashSet<Integer>();
+
 	String[] col_val = new String[1000];
-	int emailIndex = -999;
 	try {
-	    // compose the sql query
+
 	    String sql = "insert into invitee(";
-	    // open the file reader to read the file line by line
+
 	    FileReader fr = new FileReader(f);
 	    BufferedReader br = new BufferedReader(fr);
-	    String oneline = new String();
+	    String line = new String();
+
 	    int col_numb = 0, line_count = 0;
-	    while (!CommonUtils.isEmpty(oneline = br.readLine())) {
-		oneline = oneline.trim();
-		if (oneline.length() != 0) {
+	    while (!CommonUtils.isEmpty(line = br.readLine())) {
+		line = line.trim();
+		if (line.length() != 0) {
 		    line_count++;
-		    // put the column names into the array
-		    // P String[] split_str = oneline.split(",");
-		    ArrayList<String> column_content = new ArrayList<String>(
-			    Arrays.asList(oneline.split(",")));
-		    // at the 1st line, the size of the array is the total
-		    // number of the columns
+		    ArrayList<String> columns = new ArrayList<String>(
+			    Arrays.asList(line.split(",")));
+		    // first column indicates the number of elements
 		    if (line_count == 1)
-			col_numb = column_content.size();
+			col_numb = columns.size();
 		    else {
-			if (column_content.size() != col_numb) {
-			    column_content.add("");
+			if (columns.size() != col_numb) {
+			    columns.add("");
 			}
 		    }
 		    // assign the column values
-		    for (int i = 0, j = 0; i < column_content.size(); i++, j++) {
-			col_val[j] = column_content.get(i);
+		    for (int i = 0, j = 0; i < columns.size(); i++, j++) {
+			col_val[j] = columns.get(i);
 			// mark as the null string if the phrase is an empty
 			// string
-			if (column_content.size() == 0
-				|| column_content.get(i).equals("")) {
+			if (columns.size() == 0 || columns.get(i).equals("")) {
 			    col_val[j] = "NULL";
 			}
 			// parse the phrase with the comma inside (has the
 			// double-quotation mark)
 			// this string is just part of the entire string, so
 			// append with the next one
-			else if (column_content.get(i).charAt(0) == '\"'
-				&& column_content.get(i).charAt(
-					column_content.get(i).length() - 1) != '\"') {
+			else if (columns.get(i).charAt(0) == '\"'
+				&& columns.get(i).charAt(
+					columns.get(i).length() - 1) != '\"') {
 			    do {
 				i++;
-				col_val[j] += "," + column_content.get(i);
+				col_val[j] += "," + columns.get(i);
 			    }
 			    // remove the double-quotation mark at the beginnig
 			    // and end of the string
-			    while (i < column_content.size()
-				    && column_content.get(i).charAt(
-					    column_content.get(i).length() - 1) != '\"');
+			    while (i < columns.size()
+				    && columns.get(i).charAt(
+					    columns.get(i).length() - 1) != '\"');
 			    col_val[j] = col_val[j].substring(1,
 				    col_val[j].length() - 1);
 			}
 			// there could be double-quotation mark(s) (doubled by
 			// csv format) inside this string
 			// keep only one double-quotation mark(s)
-			else if (column_content.get(i).charAt(0) == '\"'
-				&& column_content.get(i).charAt(
-					column_content.get(i).length() - 1) == '\"') {
-			    if (column_content.get(i).indexOf("\"\"") != -1)
+			else if (columns.get(i).charAt(0) == '\"'
+				&& columns.get(i).charAt(
+					columns.get(i).length() - 1) == '\"') {
+			    if (columns.get(i).indexOf("\"\"") != -1)
 				col_val[j] = col_val[j]
 					.replaceAll("\"\"", "\"");
 			}
 
 			// keep only one double-quotation mark(s) if there is
 			// any inside the string
-			if (column_content.get(i).indexOf("\"\"") != -1)
+			if (columns.get(i).indexOf("\"\"") != -1)
 			    col_val[j] = col_val[j].replaceAll("\"\"", "\"");
 
 			// compose the sql query with the column values
 			if (line_count == 1
 				|| col_val[j].equalsIgnoreCase("null")) {
-			    if (col_val[j].equals("email"))
-				emailIndex = j;
+			    if (nonEncodedFieldSet.contains(col_val[j]
+				    .toLowerCase())) {
+				nonEncodedFieldPositions.add(j);
+			    }
 			    sql += col_val[j] + ",";
 			} else {
-			    if (j == emailIndex) {
+			    if (!nonEncodedFieldPositions.contains(j)) {
 				col_val[j] = "AES_ENCRYPT('"
 					+ col_val[j]
 					+ "','"

@@ -379,14 +379,12 @@ public class Study_Space {
     /** load the preface file */
     // TODO: check admin; call when new preface uploaded
     public boolean load_preface() {
-	String resourceStream = CommonUtils.getAbsolutePath(prefacePath);
-	if (resourceStream != null) {
 	    preface = new Preface(this, "preface.xml");
+	if (preface == null) {
+	    return false;
+	}
 	    preface.setHrefs(servlet_urlRoot, image_url);
 	    return true;
-	}
-	preface = null;
-	return false;
     }
 
     /** get a preface */
@@ -451,11 +449,16 @@ public class Study_Space {
 	    Statement inviteeQuery = conn.createStatement();
 	    Statement usrSteQry = conn.createStatement();
 
+	    String messageId = org.apache.commons.lang3.RandomStringUtils
+		    .randomAlphanumeric(22);
+
 	    // FIRST, to obtain new IDs, insert pending message_use records
 	    // for
 	    // each subject
-	    String msgUse_sql = "INSERT INTO survey_message_use (invitee, survey, message) "
-		    + "SELECT id, '"
+	    String msgUse_sql = "INSERT INTO survey_message_use (messageId,invitee, survey, message) "
+		    + "SELECT '"
+		    + messageId
+		    + "', id, '"
 		    + survey_id
 		    + "', 'attempt' FROM invitee WHERE " + whereStr;
 	    msgUseQry.execute(msgUse_sql);
@@ -468,7 +471,7 @@ public class Study_Space {
 	    // same time
 	    String invitee_sql = "SELECT firstname, lastname, salutation, AES_DECRYPT(email,'"
 		    + this.db.email_encryption_key
-		    + "'), invitee.id, survey_message_use.id "
+		    + "'), invitee.id, survey_message_use.messageId "
 		    + "FROM invitee, survey_message_use WHERE invitee.id = survey_message_use.invitee "
 		    + "AND message = 'attempt' AND survey = '"
 		    + survey_id

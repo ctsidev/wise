@@ -29,6 +29,7 @@ public class readform extends HttpServlet {
 		+ "</script></head>" + "<body></body>" + "</html>";
     }
 
+    @Override
     public void service(HttpServletRequest req, HttpServletResponse res)
 	    throws ServletException, IOException {
 	// prepare to write
@@ -187,35 +188,8 @@ public class readform extends HttpServlet {
 				.check_completion_number();
 			String review = "false";
 
-			// TODO: (low) delegate emailng the prior-completers to
-			// emailer program
-			// if(current_numb_completers==theUser.currentSurvey.min_completers)
-			// {
-			// //when the number of completers reach the min
-			// request, send review invitation to those people
-			// //but it doesn't include the current user, since he
-			// will get the review link at the next step
-			// String whereclause =
-			// "id !="+theUser.id+" and id IN (select distinct invitee from "+
-			// theUser.currentSurvey.id+"_data where status IS NULL and invitee NOT IN "+
-			// "(select invitee from survey_message_use where survey='"+
-			// theUser.currentSurvey.id+"' and message='"+theUser.currentSurvey.review_message+
-			// "'))";
-			//
-			// //send the review invitation
-			// tm = msg_seq.get_type_message("review");
-			// if(tm!=null)
-			// theUser.currentSurvey.study_space.message_sender.send_messages(tm,
-			// theUser);
-			// }
 			if (current_numb_completers >= theUser.currentSurvey.min_completers) {
-			    // method 1: redirect to the begin servlet
-			    // insert into the survey_message_use for a message
-			    // review =
-			    // theUser.get_survey_message_id(theUser.currentSurvey.review_message);
-			    // review =
-			    // "begin?msg="+Study_Util.encode(review)+"&t="+Study_Util.encode(theUser.currentSurvey.study_space.id);
-			    // method 2: redirect to the review_result servlet
+
 			    review = "view_results";
 			}
 

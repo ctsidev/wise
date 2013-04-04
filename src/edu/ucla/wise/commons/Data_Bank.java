@@ -129,8 +129,8 @@ public class Data_Bank {
 	    String usrID, surveyID;
 	    Survey survey;
 	    // get the user's ID and the survey ID being responded to
-	    String sql = "select invitee, survey from survey_message_use where id="
-		    + msg_id;
+	    String sql = "select invitee, survey from survey_message_use where messageId='"
+		    + msg_id + "'";
 	    stmt.execute(sql);
 	    ResultSet rs = stmt.getResultSet();
 	    if (rs.next()) // if message id not found, result set will be empty
@@ -1012,7 +1012,13 @@ public class Data_Bank {
 
 		outputStr += ("Sending invitation to invitee = " + inviteeId);
 		Statement statement2 = conn.createStatement();
-		sql = "INSERT INTO survey_message_use(invitee, survey, message) VALUES ("
+
+		String messageId = org.apache.commons.lang3.RandomStringUtils
+			.randomAlphanumeric(22);
+
+		sql = "INSERT INTO survey_message_use(messageId,invitee, survey, message) VALUES ('"
+			+ messageId
+			+ "',"
 			+ inviteeId
 			+ ",'"
 			+ survey_id
@@ -1022,12 +1028,7 @@ public class Data_Bank {
 		statement2.execute(sql);
 		String msg_index = "";
 		if (invMsg.has_link) {
-		    sql = "SELECT LAST_INSERT_ID() from survey_message_use";
-		    statement2.execute(sql);
-		    ResultSet rsm = statement2.getResultSet();
-		    if (rsm.next()) {
-			msg_index = Integer.toString(rsm.getInt(1));
-		    }
+		    msg_index = messageId;
 		}
 		String email_response = message_sender.send_message(invMsg,
 			msg_index, email, salutation, lastname, study_space.id);
@@ -1093,17 +1094,20 @@ public class Data_Bank {
 		String lastname = rs.getString("lastname");
 		outputStr += ("\nSending reminder invitation to invitee = " + iid);
 		Statement statement2 = conn.createStatement();
-		sql = "INSERT INTO survey_message_use(invitee, survey, message) VALUES ("
-			+ iid + ",'" + survey_id + "', '" + r.id + "')";
+		String messageId = org.apache.commons.lang3.RandomStringUtils
+			.randomAlphanumeric(22);
+		sql = "INSERT INTO survey_message_use(messageId,invitee, survey, message) VALUES ('"
+			+ messageId
+			+ "',"
+			+ iid
+			+ ",'"
+			+ survey_id
+			+ "', '"
+			+ r.id + "')";
 		statement2.execute(sql);
 		String msg_index = "";
 		if (r.has_link) {
-		    sql = "SELECT LAST_INSERT_ID() from survey_message_use";
-		    statement2.execute(sql);
-		    ResultSet rsm = statement2.getResultSet();
-		    if (rsm.next()) {
-			msg_index = Integer.toString(rsm.getInt(1));
-		    }
+		    msg_index = messageId;
 		}
 		// args: send_message(Message msg, String from_str, String
 		// message_useID, String toEmail, String salutation, String
@@ -1511,10 +1515,6 @@ public class Data_Bank {
 		String column_name = rs.getString("Field");
 		if (column_name.equalsIgnoreCase("id"))
 		    continue;
-
-		log.info("Column name is " + column_name);
-
-		log.info(requestParameters.get(column_name));
 		
 		String column_val = requestParameters.get(column_name);
 		String column_type = rs.getString("Type");

@@ -26,9 +26,18 @@ public class begin extends HttpServlet {
     public void service(HttpServletRequest req, HttpServletResponse res)
 	    throws IOException
  {
-
 	res.setContentType("text/html");
 	PrintWriter out = res.getWriter();
+
+	// Check if user hit counter indicates heavy traffic
+	if (UserHitCounter.getInstance().getNumberOfUserAccesses() > 100000) {
+	    out.println("Too many users in the system"
+		    + "<p> WISE Begin failed </p>"
+		    + edu.ucla.wise.commons.Surveyor_Application.initErrorHtmlFoot);
+	    return;
+	} else {
+	    UserHitCounter.getInstance().incrementNumberOfUserAccesses();
+	}
 
 	// Initialize surveyor application if not already started
 	String initErr = Surveyor_Application.check_init(req.getContextPath());
@@ -49,7 +58,7 @@ public class begin extends HttpServlet {
 	String spaceid_encode = req.getParameter("t");
 
 	// get the email message ID
-	String msgid_encode = req.getParameter("msg");
+	String msgid = req.getParameter("msg");
 
 	// get encoded survey ID
 	String surveyid_encode = req.getParameter("s");
@@ -72,7 +81,7 @@ public class begin extends HttpServlet {
 	// information
 	// Hence, ask the user to enter his details so that invitee shall be
 	// created.
-	if (CommonUtils.isEmpty(msgid_encode)) {
+	if (CommonUtils.isEmpty(msgid)) {
 	    StringBuffer destination = new StringBuffer();
 	    destination.append("/WISE/survey/").append(
 		    WiseConstants.NEW_INVITEE_JSP_PAGE);
@@ -87,7 +96,7 @@ public class begin extends HttpServlet {
 	    return;
 	}
 
-	String spaceid, msgid;
+	String spaceid;
 	User theUser;
 
 	// decode study space ID
@@ -105,8 +114,6 @@ public class begin extends HttpServlet {
 	    return;
 	}
 
-	// decode the msg ID
-	msgid = WISE_Application.decode(msgid_encode);
 	// get the user ID
 	theUser = (User) session.getAttribute("USER");
 

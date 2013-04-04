@@ -157,20 +157,20 @@ public class Interviewer {
 	    // connect to the database
 	    Connection conn = study_space.getDBConnection();
 	    Statement statement = conn.createStatement();
+		String messageId = org.apache.commons.lang3.RandomStringUtils
+			.randomAlphanumeric(22);
 	    // insert an interview record
 	    String sql = "INSERT INTO survey_message_use (invitee, survey, message, sent_date) "
 		    + " values ('"
+			+ messageId
+		    + "','"
 		    + invitee_id
 		    + "','"
 		    + survey_id
 		    + "','interview', now())";
-	    boolean good = statement.execute(sql);
-	    sql = "SELECT LAST_INSERT_ID()";
-	    good = statement.execute(sql);
-	    ResultSet rs = statement.getResultSet();
-	    if (rs.next())
-		survey_msg_id = rs.getString(1);
-	    rs.close();
+	    statement.execute(sql);
+	    survey_msg_id = messageId;
+
 	    statement.close();
 	    conn.close();
 	} catch (Exception e) {

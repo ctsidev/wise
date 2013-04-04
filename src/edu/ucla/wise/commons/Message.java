@@ -60,7 +60,7 @@ public class Message {
 		if (node_p.item(j).getNodeName()
 			.equalsIgnoreCase("Message_Ref")
 			&& !has_ref) // check prevents a 2nd ref (tho that's
-				     // invalid)
+		// invalid)
 		{
 		    msg_ref = node_p.item(j).getAttributes().getNamedItem("ID")
 			    .getNodeValue();
@@ -201,11 +201,12 @@ public class Message {
 	    // servlet_path+"begin?msg="+WISE_Application.encode(msg_index)
 	    // +"&t="+WISE_Application.encode(ssid);
 	    String reminder_link = servlet_path + "survey?msg="
-		    + WISE_Application.encode(msg_index) + "&t="
+ + msg_index
+		    + "&t="
 		    + WISE_Application.encode(ssid);
 
 	    String decline_link = servlet_path + "survey/declineNOW?m="
-		    + WISE_Application.encode(msg_index) + "&t="
+		    + msg_index + "&t="
 		    + WISE_Application.encode(ssid);
 
 	    text_body = text_body.replaceAll("URL LINK", reminder_link + "\n");
@@ -228,7 +229,7 @@ public class Message {
 	    return servletPath + "survey?t="
 		    + WISE_Application.encode(studySpaceId) + "&s="
 		    + CommonUtils.base64Encode(surveyId);
-	return servletPath + "survey?msg=" + WISE_Application.encode(msgIndex)
+	return servletPath + "survey?msg=" + msgIndex
 		+ "&t=" + WISE_Application.encode(surveyId);
     }
 
@@ -236,7 +237,7 @@ public class Message {
 	    String ssid, String msg_index) {
 	if (!html_format)
 	    return null; // null return is the external signal the message
-			 // doesn't have an HTML version
+	// doesn't have an HTML version
 
 	// this overrides the iVar TODO: FIX so that we can actually use it here
 	// and for overview display
@@ -250,10 +251,12 @@ public class Message {
 	    // String reminder_link =
 	    // servlet_path+"begin?msg="+WISE_Application.encode(msg_index)
 	    String reminder_link = servlet_path + "survey?msg="
-		    + WISE_Application.encode(msg_index) + "&t="
+ + msg_index
+		    + "&t="
 		    + WISE_Application.encode(ssid);
 	    String decline_link = servlet_path + "declineNOW?m="
-		    + WISE_Application.encode(msg_index) + "&t="
+ + msg_index
+		    + "&t="
 		    + WISE_Application.encode(ssid);
 	    html_body = html_body.replaceAll("URL LINK",
 		    "<p align=center><a href='" + reminder_link + "'>"

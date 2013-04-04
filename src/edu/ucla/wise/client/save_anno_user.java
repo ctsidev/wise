@@ -71,7 +71,7 @@ public class save_anno_user extends HttpServlet {
 	    String parameterName = parametersNames.nextElement();
 
 	    String[] parameterValues = request.getParameterValues(parameterName);
-	    
+
 	    parametersMap.put(parameterName, parameterValues[0]);
 
 	}
@@ -98,10 +98,10 @@ public class save_anno_user extends HttpServlet {
 		msg_seqs[0].id, surveyIdString, " invitee.id in ( " + userId
 			+ " )", false);
 
-	request.setAttribute("msg", WISE_Application.encode(msgSeqId));
+	request.setAttribute("msg", msgSeqId);
 	StringBuffer destination = new StringBuffer();
 	destination.append("/WISE/survey").append("?msg=")
-		.append(WISE_Application.encode(msgSeqId))
+.append(msgSeqId)
 		.append("&t=" + WISE_Application.encode(theStudy.id));
 	response.sendRedirect(destination.toString());
 
