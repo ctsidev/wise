@@ -173,12 +173,12 @@ CREATE TABLE `pending` (
 
 DROP TABLE IF EXISTS `survey_message_use`;
 CREATE TABLE `survey_message_use` (
-  `id` int(6) NOT NULL auto_increment,
+  `messageId` varchar(64) NOT NULL,
   `invitee` int(6) default NULL,
   `survey` varchar(64) default NULL,
   `message` varchar(64) default NULL,
   `sent_date` timestamp NOT NULL default CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP,
-  PRIMARY KEY  (`id`),
+  PRIMARY KEY  (`messageId`),
   KEY `invitee` (`invitee`),
   CONSTRAINT `survey_message_use_ibfk_1` FOREIGN KEY (`invitee`) REFERENCES `invitee` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
